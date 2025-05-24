@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KEAM Marks & Rank Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #e0eafc, #cfdef3);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #004aad;
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .container:hover {
+            transform: translateY(-5px);
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+        select, input[type=number] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 5px;
+            border: 1px solid #bbb;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        select:focus, input[type=number]:focus {
+            border-color: #004aad;
+            outline: none;
+        }
+        button {
+            margin-top: 30px;
+            width: 100%;
+            padding: 12px;
+            background-color: #004aad;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s;
+        }
+        button:hover {
+            background-color: #003080;
+            transform: translateY(-2px);
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #d9e8ff;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #004aad;
+            color: white;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f0f4ff;
+        }
+        .footer-note {
+            max-width: 600px;
+            margin: 40px auto;
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>KEAM Marks & Rank Calculator</h1>
+    <label for="board">Select Your Board</label>
+    <select id="board">
+        <option value="state">State Board (PCM out of 360)</option>
+        <option value="cbse">CBSE (PCM out of 300)</option>
+        <option value="icse">ICSE (PCM out of 300)</option>
+    </select>
+
+    <label for="pcmMarks">Enter PCM Marks (as per board max)</label>
+    <input type="number" id="pcmMarks" min="0" placeholder="e.g. 307" />
+
+    <label for="keamMarks">Enter KEAM Normalized Marks (out of 300)</label>
+    <input type="number" id="keamMarks" min="0" max="300" placeholder="e.g. 55" />
+
+    <button onclick="calculateKEAM()">Calculate KEAM Score & Rank</button>
+
+    <div id="result" class="result" style="display:none;"></div>
+</div>
+
+<div class="container" style="max-width: 700px;">
+    <h2>KEAM Rank Table (Total Score vs Expected Rank)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Total Score (Out of 600)</th>
+                <th>Expected Rank</th>
+            </tr>
+        </thead>
+        <tbody id="rankTableBody">
+            <!-- Rank rows will be inserted here -->
+        </tbody>
+    </table>
+    <p class="footer-note">*Ranks are approximate and based on previous years’ trends.</p>
+</div>
+
+<script>
+    const rankData = [
+        {score: "588 & Above", rank: "1-5"},
+        {score: "585 & Above", rank: "6-10"},
+        {score: "580 & Above", rank: "11-25"},
+        {score: "575 & Above", rank: "26-50"},
+        {score: "565 & Above", rank: "51-100"},
+        {score: "Around 555", rank: "101-200"},
+        {score: "Around 525", rank: "201-500"},
+        {score: "Around 500", rank: "501-1000"},
+        {score: "Around 470", rank: "1001-2000"},
+        {score: "Around 450", rank: "2001-3000"},
+        {score: "Around 440", rank: "3001-4000"},
+        {score: "Around 425", rank: "4001-5000"},
+        {score: "Around 415", rank: "5001-6000"},
+        {score: "Around 400", rank: "6001-7000"},
+        {score: "Around 390", rank: "7001-8000"},
+        {score: "Around 380", rank: "8001-9000"},
+        {score: "Around 375", rank: "9001-10000"},
+        {score: "365", rank: "10001-11000"},
+        {score: "Around 360", rank: "11001-12000"},
+        {score: "Around 355", rank: "12001-13000"},
+        {score: "Around 350", rank: "13001-14000"},
+        {score: "Around 345", rank: "14001-15000"},
+        {score: "Around 340", rank: "15001-16000"},
+        {score: "Around 335", rank: "16001-17000"},
+        {score: "Around 330", rank: "17001-18000"},
+        {score: "Around 325", rank: "18001-19000"},
+        {score: "Around 320", rank: "19001-20000"},
+        {score: "Around 310", rank: "20001-25000"},
+        {score: "Around 295", rank: "25001-30000"},
+        {score: "Around 285", rank: "30001-35000"},
+        {score: "Around 265", rank: "35001-40000"},
+        {score: "Around 250", rank: "40001-45000"},
+        {score: "Around 225", rank: "45001-50000"},
+    ];
+
+    // Insert rank table rows dynamically
+    const tbody = document.getElementById('rankTableBody');
+    rankData.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.score}</td><td>${row.rank}</td>`;
+        tbody.appendChild(tr);
+    });
+
+    function calculateKEAM() {
+        const board = document.getElementById('board').value;
+        const pcmMarksInput = document.getElementById('pcmMarks').value;
+        const keamMarksInput = document.getElementById('keamMarks').value;
+
+        const pcmMarks = Number(pcmMarksInput);
+        const keamMarks = Number(keamMarksInput);
+
+        if (!pcmMarksInput || isNaN(pcmMarks) || pcmMarks < 0) {
+            alert("Please enter valid PCM marks.");
+            return;
+        }
+        if (!keamMarksInput || isNaN(keamMarks) || keamMarks < 0 || keamMarks > 300) {
+            alert("Please enter valid KEAM normalized marks (0-300).");
+            return;
+        }
+
+        let maxPcmMarks = board === 'state' ? 360 : 300;
+
+        if (pcmMarks > maxPcmMarks) {
+            alert(`PCM marks cannot exceed ${maxPcmMarks} for the selected board.`);
+            return;
+        }
+
+        // Normalize PCM marks to 300
+        const normalizedPcm = (pcmMarks / maxPcmMarks) * 300;
+
+        // Calculate total score (out of 600)
+        const totalScore = normalizedPcm + keamMarks;
+
+        // Find estimated rank based on totalScore and rankData
+        let estimatedRank = "Rank data not available";
+
+        for (let i = 0; i < rankData.length; i++) {
+            const entry = rankData[i];
+            const scoreText = entry.score;
+            let scoreValue;
+
+            // Extract numeric score for comparison (approximate)
+            const match = scoreText.match(/(\d+)/);
+            if (match) scoreValue = Number(match[1]);
+            else scoreValue = 0;
+
+            if (scoreText.includes("Above")) {
+                if (totalScore >= scoreValue) {
+                    estimatedRank = entry.rank;
+                    break;
+                }
+            } else if (scoreText.includes("Around")) {
+                // Accept range +/- 5 marks for "around"
+                if (totalScore >= (scoreValue - 5)) {
+                    estimatedRank = entry.rank;
+                    break;
+                }
+            } else {
+                // Exact or no qualifier
+                if (totalScore >= scoreValue) {
+                    estimatedRank = entry.rank;
+                    break;
+                }
+            }
+        }
+
+        // Show results
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <p><strong>Your Normalized PCM Marks:</strong> ${normalizedPcm.toFixed(2)} / 300</p>
+            <p><strong>Your KEAM Entrance Marks:</strong> ${keamMarks.toFixed(2)} / 300</p>
+            <p><strong>Total KEAM Score:</strong> ${totalScore.toFixed(2)} / 600</p>
+            <p><strong>Estimated Rank:</strong> ${estimatedRank}</p>
+        `;
+    }
+</script>
+
+</body>
+</html>
